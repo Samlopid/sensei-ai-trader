@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Sensei AI Trader — Prototype</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#17243a;--text:#eef4ff;--muted:#9caec8;--line:#263650;--green:#39d98a;--red:#ff6b78;--gold:#f5c451;--blue:#70a7ff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#0b1220,#111c2f 65%,#0b1220);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:1050px;margin:auto;padding:18px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 18px}
+.brand{display:flex;align-items:center;gap:11px}.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#f5c451,#ff8c42);color:#172033;font-weight:900;font-size:20px}
+h1{font-size:21px;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:3px}.badge{border:1px solid #6e5d2b;background:#2a2518;color:#ffdc77;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:700}
+.notice{padding:12px 14px;border:1px solid #69582a;background:#282416;border-radius:14px;color:#f6df9a;font-size:13px;line-height:1.45;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}.card{background:rgba(18,29,48,.94);border:1px solid var(--line);border-radius:17px;padding:16px;min-width:0}.span8{grid-column:span 8}.span4{grid-column:span 4}.span6{grid-column:span 6}.span12{grid-column:span 12}
+.card h2{font-size:14px;color:#dce7fa;margin:0 0 13px}.label{font-size:11px;color:var(--muted);display:block;margin-bottom:7px}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mode button,.market button{background:#101a2b;border:1px solid var(--line);color:var(--muted);border-radius:11px;padding:11px 8px;font-weight:750;cursor:pointer}
+.mode button.active{border-color:var(--green);background:#102b29;color:#8ef0bc}.mode button.live.active{border-color:var(--red);background:#351b27;color:#ffadb5}
+select,input{width:100%;background:#0d1727;border:1px solid var(--line);color:var(--text);padding:11px;border-radius:10px;font:inherit;margin-bottom:12px}
+.market{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.market button{font-size:12px}.market button.active{border-color:var(--blue);color:#b9d2ff;background:#162946}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{padding:12px;border-radius:12px;background:#0e192a;border:1px solid #1e2e45}.metric .k{font-size:11px;color:var(--muted)}.metric .v{font-size:20px;font-weight:800;margin-top:5px}
+.statusline{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin:4px 0 14px}.dot{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.primary,.secondary,.danger{border:0;border-radius:11px;padding:12px 15px;font-weight:800;cursor:pointer}.primary{background:var(--green);color:#082219}.secondary{background:#263750;color:var(--text)}.danger{background:#42232d;color:#ffb4bc}
+.small{font-size:12px;color:var(--muted);line-height:1.5}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--muted);font-weight:600}.empty{text-align:center;color:var(--muted);padding:20px}
+footer{font-size:11px;color:#8193ae;text-align:center;padding:20px 8px}
+@media(max-width:700px){.span8,.span4,.span6{grid-column:span 12}.metrics{grid-template-columns:repeat(3,1fr)}.metric .v{font-size:16px}.wrap{padding:12px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="logo">S</div><div><h1>Sensei AI Trader</h1><div class="sub">Trading dashboard • early prototype</div></div></div>
+    <div class="badge">PROTOTYPE · NOT CONNECTED TO MT5</div>
+  </header>
+  <div class="notice"><strong>Demo interface only:</strong> This website does not connect to Deriv, receive live prices, or place trades. All numbers are sample data. Real trading must remain disabled until a secure, tested MT5 execution service is built.</div>
+
+  <main class="grid">
+    <section class="card span4">
+      <h2>Trading mode</h2>
+      <span class="label">Choose mode (interface preview)</span>
+      <div class="mode"><button id="demoBtn" class="active" onclick="setMode('DEMO')">DEMO</button><button id="realBtn" class="live" onclick="setMode('REAL')">REAL</button></div>
+      <p id="modeNote" class="small">Demo selected. This prototype does not execute orders.</p>
+      <label class="label" for="marketSelect">Market</label>
+      <select id="marketSelect" onchange="setMarket(this.value)">
+        <option value="XAUUSD">XAUUSD — Gold</option>
+        <option value="EURUSD">EURUSD</option>
+        <option value="Volatility 75">Volatility 75 Index</option>
+      </select>
+      <label class="label" for="risk">Risk per trade (planned setting)</label>
+      <select id="risk"><option>0.25%</option><option selected>0.50%</option><option>1.00%</option></select>
+      <label class="label" for="dailyLimit">Daily loss limit (planned setting)</label>
+      <select id="dailyLimit"><option>1%</option><option selected>2%</option><option>3%</option></select>
+      <p class="small">Settings are for interface demonstration only; they are not sent to a broker.</p>
+    </section>
+
+    <section class="card span8">
+      <h2>System overview</h2>
+      <div class="statusline"><span class="dot"></span><span id="systemStatus">Idle · waiting for a real data connection</span></div>
+      <div class="metrics">
+        <div class="metric"><div class="k">Today's P/L</div><div class="v" id="pl">$0.00</div></div>
+        <div class="metric"><div class="k">Win rate</div><div class="v" id="winrate">—</div></div>
+        <div class="metric"><div class="k">Drawdown</div><div class="v" id="drawdown">—</div></div>
+      </div>
+      <div style="height:16px"></div>
+      <div class="actions"><button class="primary" onclick="startPreview()">Start preview</button><button class="secondary" onclick="pausePreview()">Pause</button><button class="danger" onclick="stopPreview()">Stop</button></div>
+      <p id="previewMessage" class="small" aria-live="polite">The Start button only runs a local interface preview. It cannot trade.</p>
+    </section>
+
+    <section class="card span6">
+      <h2>AI decision panel</h2>
+      <div class="metric" style="margin-bottom:10px"><div class="k">Selected market</div><div class="v" id="selectedMarket">XAUUSD</div></div>
+      <div class="statusline"><span class="dot"></span><span id="decision">No market data connected</span></div>
+      <p class="small">The eventual engine will need a defined and tested strategy, reliable market data, risk checks, and a separate execution service. An AI label alone is not a trading strategy.</p>
+    </section>
+
+    <section class="card span6">
+      <h2>Connection status</h2>
+      <p><strong>Broker:</strong> <span class="small">Deriv MT5 (planned)</span></p>
+      <p><strong>Market data:</strong> <span class="small">Not connected</span></p>
+      <p><strong>Execution engine:</strong> <span class="small">Not built</span></p>
+      <p><strong>Last sync:</strong> <span class="small">Never</span></p>
+      <p class="small">Never enter your MT5 password or API tokens into this prototype. A secure connection will be designed separately.</p>
+    </section>
+
+    <section class="card span12">
+      <h2>Trade journal</h2>
+      <div class="tablewrap"><table><thead><tr><th>Time</th><th>Market</th><th>Mode</th><th>Action</th><th>Result</th><th>Status</th></tr></thead><tbody id="tradeRows"><tr><td colspan="6" class="empty">No trades recorded. This prototype does not place trades.</td></tr></tbody></table></div>
+    </section>
+  </main>
+  <footer>Sensei AI Trader • Prototype build 0.1 • Educational software, not financial advice.</footer>
+</div>
+<script>
+let mode='DEMO', running=false, market='XAUUSD';
+function setMode(m){
+  mode=m;
+  document.getElementById('demoBtn').classList.toggle('active',m==='DEMO');
+  document.getElementById('realBtn').classList.toggle('active',m==='REAL');
+  const note=document.getElementById('modeNote');
+  if(m==='REAL'){
+    note.textContent='REAL mode is a visual preview only. Live trading is not implemented or enabled.';
+    note.style.color='#ffadb5';
+  }else{
+    note.textContent='Demo selected. This prototype does not execute orders.';
+    note.style.color='';
+  }
+}
+function setMarket(m){market=m;document.getElementById('selectedMarket').textContent=m;}
+function startPreview(){
+  running=true;
+  document.getElementById('systemStatus').textContent='Preview running · no broker connection';
+  document.getElementById('decision').textContent='Waiting — no live market data';
+  document.getElementById('previewMessage').textContent='Preview started. No orders are sent and no trading account is accessed.';
+}
+function pausePreview(){
+  running=false;
+  document.getElementById('systemStatus').textContent='Paused · no broker connection';
+  document.getElementById('previewMessage').textContent='Preview paused. No trades were placed.';
+}
+function stopPreview(){
+  running=false;
+  document.getElementById('systemStatus').textContent='Stopped · no broker connection';
+  document.getElementById('previewMessage').textContent='Preview stopped. No trades were placed.';
+}
+</script>
+</body>
+</html>
